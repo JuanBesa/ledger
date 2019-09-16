@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "dmlf/update.hpp"
-#include "dmlf/muddle_learner_networker.hpp"
+#include "dmlf/tcp_learner_networker.hpp"
 #include "core/logging.hpp"
 
 namespace {
@@ -32,10 +32,12 @@ int main(int argc, char **argv)
     uris.push_back(fetch::network::Uri{peer});
   }
 
-  fetch::dmlf::MuddleLearnerNetworker muddle_learner{uris};
+  fetch::dmlf::TcpLearnerNetworker muddle_learner{uris};
   FETCH_LOG_INFO(LOGGING_NAME, "Proceeding to start ...");
+  
+  muddle_learner.start();
+  std::this_thread::sleep_for(5s);
 
-  /*
   int num_upds = 10;
   std::shared_ptr<IUpdate> upd;
   FETCH_LOG_INFO(LOGGING_NAME, "Updates to push:");
@@ -43,18 +45,15 @@ int main(int argc, char **argv)
   {
     auto upd = std::make_shared<Update<std::string>>(std::vector<std::string>{std::to_string(i)});
     muddle_learner.pushUpdate(upd);
-    FETCH_LOG_INFO(LOGGING_NAME, "Update", i, " ", upd->TimeStamp());
-    std::this_thread::sleep_for(0.654321s);
+    FETCH_LOG_INFO(LOGGING_NAME, "Update pushed ", i, " ", upd->TimeStamp());
+    std::this_thread::sleep_for(1.123456789s);
   }
   
   FETCH_LOG_INFO(LOGGING_NAME, "Updates from MuddleLearner:");
   while((upd = muddle_learner.getUpdate()) != nullptr) 
   {
-    FETCH_LOG_INFO(LOGGING_NAME, "Update ", upd->TimeStamp());
+    FETCH_LOG_INFO(LOGGING_NAME, "Update received ", upd->TimeStamp());
   }
-  */
-
-  muddle_learner.start();
   
   while(true)
   {

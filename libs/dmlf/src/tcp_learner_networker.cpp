@@ -16,7 +16,7 @@
 //
 //------------------------------------------------------------------------------
 
-#include "dmlf/muddle_learner_networker.hpp"
+#include "dmlf/tcp_learner_networker.hpp"
 #include "dmlf/update.hpp"
 
 #include "network/service/function.hpp"
@@ -36,50 +36,35 @@ uint16_t ephem_port_()
   return distr(generator);
 }
 
-void MuddleLearnerNetworker::start()
+void TcpLearnerNetworker::start()
 {
   if(nm_mine_) 
     nm_->Start();
   
-  upds_out_->Start();
+  server_->Start();
   
-  for (auto& upd_in : upds_in_)
+  for (auto& upd_in : clients_)
   {
     while (!upd_in->is_alive())
     {
       std::cout << "Waiting for client to connect" << std::endl;
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-   
-   /*
-   upd_istream->Subscribe(protocols::FetchProtocols::SUBSCRIBE_PROTO,
-                                  protocols::SubscribeProto::NEW_MESSAGE,
-                                  new service::Function<void(std::string)>([this](byte_array::ByteArray const &upd) {
-                                    auto update = std::make_shared<fetch::dmlf::Update<int>>();
-                                    update->deserialise(upd);
-                                    std::cout << "Got update: " << update->TimeStamp() << std::endl;
-                                    {
-                                      Lock lock{updates_m_};
-                                      updates_.push(update);
-                                    }
-                                  }));
-  */
   }
 }
 
-void MuddleLearnerNetworker::pushUpdate( std::shared_ptr<IUpdate> update)
+void TcpLearnerNetworker::pushUpdate( std::shared_ptr<IUpdate> update)
 {
- update->serialise();
- //updates_ostream_->SendUpdate(upd_bytes);
+  broadcast_update_(update);
 }
 
-std::size_t MuddleLearnerNetworker::getUpdateCount() const 
+std::size_t TcpLearnerNetworker::getUpdateCount() const 
 {
   Lock lock{updates_m_};
   return updates_.size();
 }
 
-std::shared_ptr<IUpdate> MuddleLearnerNetworker::getUpdate()
+std::shared_ptr<IUpdate> TcpLearnerNetworker::getUpdate()
 {
   Lock lock{updates_m_};
   if(!updates_.empty())
@@ -91,7 +76,7 @@ std::shared_ptr<IUpdate> MuddleLearnerNetworker::getUpdate()
   return std::shared_ptr<IUpdate>{nullptr}; 
 }
 
-std::size_t MuddleLearnerNetworker::getCount()
+std::size_t TcpLearnerNetworker::getCount()
 {
   return getUpdateCount();
 }
