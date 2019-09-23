@@ -1,5 +1,7 @@
 #include "dmlf/vm_wrapper_systemcommand.hpp"
 
+#include <unistd.h>
+
 
 namespace fetch {
 namespace dmlf {
@@ -7,7 +9,7 @@ namespace dmlf {
 
 
 
-void VmWrapperSystemcommand::Execute(std::string entrypoint, const Params params)
+void VmWrapperSystemcommand::Execute(std::string /*entrypoint*/, const Params /*params*/)
 {
   ::pipe(stdin_pipe); // 0 = read end, 1 = write end.
   ::pipe(stderr_pipe);
@@ -24,8 +26,10 @@ void VmWrapperSystemcommand::Execute(std::string entrypoint, const Params params
   case 0:
     //we are the child.
   case -1:
+    break;
     // error
   default:
+    break;
     // we are the parent.
     
   }
