@@ -167,6 +167,8 @@ ExecutionResult BasicVmEngine::Run(Name const &execName, Name const &stateName,
       std::cout << "GOT TYPE INFO\n";
       auto typeInfo = vm.GetTypeInfo(typeId);
       std::cout << typeInfo.name << '\n';
+      std::cout << "OR\n";
+      std::cout << vm.GetTypeName(typeId) << '\n';
       std::cout << "END OF TYPE INFO\n";
       return EngineError(Error::Code::RUNTIME_ERROR, "Wrong parameter at " + std::to_string(i) +
                                                          " Expected " + vm.GetTypeName(typeId));
@@ -245,7 +247,7 @@ bool BasicVmEngine::Convertable(LedgerVariant const &ledgerVariant, TypeId const
     return ledgerVariant.IsFixedPoint();
   }
   default:
-    std::cout << "Expected typeId " << typeId << '\n';
+    std::cout << "Recieved typeId " << typeId << '\n';
     return false;
   }
 }
