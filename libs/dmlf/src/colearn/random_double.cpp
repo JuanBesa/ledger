@@ -23,9 +23,12 @@ namespace dmlf {
 namespace colearn {
 
 RandomDouble::RandomDouble()
-  : twister_(rd_())
+  : twister_()
   , underlying_(0.0, 1.0)
 {
+  std::random_device rd;
+  twister_.seed(rd());
+
   GetNew();
 }
 
