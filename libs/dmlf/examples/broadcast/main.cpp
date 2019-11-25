@@ -1,8 +1,10 @@
 
 #include "dmlf/colearn/random_double.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <iterator>
 #include <random>
 #include <vector>
 
@@ -35,10 +37,11 @@ public:
   }
   bool Process(double proportion, double random_factor)
   {
-    double whole;
-    double temp = randomiser_.GetNew();
-    bool willProcess = std::modf(temp + random_factor, &whole) <= proportion;
+    DOUBLE whole;
+    //double temp = randomiser_.GetNew();
+    bool willProcess = std::modf(randomising_offset_ + random_factor, &whole) <= proportion;
     //processed_.push_back(willProcess);
+    totalProcessed_ += willProcess;
     return willProcess;
   }
 
@@ -48,13 +51,16 @@ public:
   }
   long TotalProcessed() const
   {
-    return std::count(processed_.begin(), processed_.end(), true);
+    return totalProcessed_;
   }
 
 private:
+  using DOUBLE = double;
+
   std::vector<bool> processed_;
   Randomiser randomiser_;
   double randomising_offset_;
+  long totalProcessed_;
 };
 
 }  // namespace colearn
@@ -128,12 +134,13 @@ std::tuple<double,double,double,double> ProcessGlobal(Experiment const& experime
     return std::make_tuple(averageProcessed, sdProcessed, averageRatio, sdRatio);
 }
 
-int main()
+void ProportionTest(std::size_t size, int n)
 {
-  std::size_t size = 3000;
-  int         n    = 10000;
-  std::cout << "Size: " << size << "\tn " << n << '\n';
-  double step = 0.01;
+  std::ofstream out("PropTest_Hot.csv");
+
+  out << "Size," << size << ",n," << n << '\n';
+  out << "Proportion,ProcAvg,ProcSD,RatioAvg,RatioSD,Min,Max\n";
+  double step = 0.1;
   for (double proportion = 0.0; proportion <= 1.0; proportion += step)
   {
     Experiment experiment(size);
@@ -148,13 +155,48 @@ int main()
     double sdRatio;
     std::tie(averageProcessed, sdProcessed, averageRatio, sdRatio) =  ProcessGlobal(experiment, size, n);
 
-    std::cout << "Proportion " << proportion*100 
-    << "\tProcessed " << averageProcessed << "\tsd: " << sdProcessed 
-    << "\tRatio " << averageRatio*100 << "\tsd: " << sdRatio*100 
-    << "\tMin " << *std::min_element(experiment.results.begin(), experiment.results.end()) 
-    << "\tMax " << *std::max_element(experiment.results.begin(), experiment.results.end()) 
-    << '\n';
+    out << proportion*100 
+        << "," << averageProcessed << "," << sdProcessed 
+        << "," << averageRatio*100 << "," << sdRatio*100 
+        << "," << *std::min_element(experiment.results.begin(), experiment.results.end()) 
+        << "," << *std::max_element(experiment.results.begin(), experiment.results.end()) 
+        << '\n';
   }
+}
+
+void UsageTest(std::size_t size, int n, double proportion)
+{
+  std::ofstream out("UsageTest.csv");
+
+  Experiment experiment(size);
+  for (int i = 0; i < n; ++i)
+  {
+    experiment.Broadcast(proportion);
+  }
+
+  std::vector<long> allProcessed;
+  allProcessed.reserve(size);
+  std::transform(experiment.network.cbegin(), experiment.network.cend(), std::back_inserter(allProcessed), [] (Node const& n) { return n.TotalProcessed(); });
+
+  std::sort(allProcessed.begin(), allProcessed.end());
+
+  out << "Size," << size << ",n," << n << ",proportion," << proportion << '\n';
+  out << "Num Processed\n"; 
+  for (auto i : allProcessed)
+  {
+    out << i << '\n';
+  }
+}
+
+
+int main()
+{
+  std::size_t size = 3000;
+  int         n    = 100000;
+
+  ProportionTest(size,n);
+  //double proportion = 0.5;
+  //UsageTest(size,n, proportion);
 
   return EXIT_SUCCESS;
 }
