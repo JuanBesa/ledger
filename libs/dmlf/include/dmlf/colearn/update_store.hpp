@@ -25,6 +25,8 @@
 #include <vector>
 
 #include "core/mutex.hpp"
+#include "telemetry/registry.hpp"
+#include "telemetry/counter.hpp"
 
 namespace fetch {
 namespace dmlf {
@@ -72,6 +74,7 @@ private:
   AlgoMap       algo_map_;
   mutable Mutex global_m_;
 
+  fetch::telemetry::CounterPtr counter = fetch::telemetry::Registry::Instance().CreateCounter("pushes_total", "how many times the update_store has been pushed" , {{"update_store", "colearn"}});
   std::unordered_map<Fingerprint, UpdateConsumers> consumed_;
 };
 

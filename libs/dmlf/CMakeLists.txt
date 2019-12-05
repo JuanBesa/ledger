@@ -24,6 +24,7 @@ target_link_libraries(fetch-dmlf
                              fetch-ml
                              fetch-oef-base
                              fetch-vm
+                             fetch-http
                              fetch-vm-modules)
 
 # Test targets

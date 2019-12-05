@@ -79,6 +79,10 @@ void UpdateStore::PushUpdate(ColearnURI const &uri, Data &&data, Metadata &&meta
 void UpdateStore::PushUpdate(Algorithm const &algo, UpdateType type, Data &&data, Source source,
                              Metadata &&metadata)
 {
+  
+  counter->increment();
+
+
   QueueId id        = Id(algo, type);
   auto    newUpdate = std::make_shared<Update>(algo, std::move(type), std::move(data),
                                             std::move(source), std::move(metadata));
